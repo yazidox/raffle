@@ -212,17 +212,17 @@ const FilterUserAuction = (props: any) => {
               alt="CoodeImage"
               className="lg:h-[300px] w-full object-cover"
             />
-            <div className="absolute top-0 left-0 h-full w-full">
+            <div className="absolute top-0 left-0 w-full h-full">
               <div className="flex flex-col justify-between h-full p-2">
                 <div className="flex justify-end">
                   <div className="border-black bg-[#949494] border flex rounded-md overflow-hidden">
-                    <p className="bg-white text-base py-1 pl-2 pr-4 para-clip">
+                    <p className="py-1 pl-2 pr-4 text-base bg-white para-clip">
                       {item.tokenName}
                     </p>
-                    <p className="py-1 px-2 text-base text-white">#{item.tokenId}</p>
+                   
                   </div>
                 </div>
-                <div className="flex justify-between items-start">
+                <div className="flex items-start justify-between">
                   {/* <div className="border-black bg-[#949494] border flex rounded-md overflow-hidden">
                     <p className="bg-white text-base pt-[4px] pl-2 pr-3 para-clip-2">
                       <img
@@ -247,11 +247,11 @@ const FilterUserAuction = (props: any) => {
               </div>
             </div>
           </div>
-          <div className="bg-white -mt-1">
+          <div className="-mt-1 bg-white">
             <div className="pt-2 pl-3 pb-2 border-b-[#D9D9D9] border">
               <div className="flex items-center">
                 <img src={VerificationIcon} alt="VerificationIcon" />
-                <span className="text-base leading-none inline-block ml-1">
+                <span className="inline-block ml-1 text-base leading-none">
                   {item.tokenName}
                 </span>
               </div>

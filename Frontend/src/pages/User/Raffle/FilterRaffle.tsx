@@ -1,123 +1,157 @@
-import { useState } from 'react';
-import Countdown, { CountdownApi } from 'react-countdown'
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import Countdown, { CountdownApi } from "react-countdown";
+import { Link } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useAnchorWallet } from '@solana/wallet-adapter-react';
-import { buyTicketsForRaffle } from '../../../services/contracts/raffle';
+import { useAnchorWallet } from "@solana/wallet-adapter-react";
+import { buyTicketsForRaffle } from "../../../services/contracts/raffle";
 
 import VerificationIcon from "../../../assets/Verification-icon.png";
 import UnionIcons from "../../../assets/Union-icons.png";
-import { prettyNumber } from '../../../utils';
+import { prettyNumber } from "../../../utils";
 
 const UserFilterRaffle = (props: any) => {
-  const anchorWallet = useAnchorWallet()
-  const { item, id, url, walletBalance, isFilterRaffles, isFilterByItem, setFilterByItem, setLoading, buyTicketNFT } = props
+  const anchorWallet = useAnchorWallet();
+  const {
+    item,
+    id,
+    url,
+    walletBalance,
+    isFilterRaffles,
+    isFilterByItem,
+    setFilterByItem,
+    setLoading,
+    buyTicketNFT,
+  } = props;
   const [amount, setAmount] = useState<any>(``);
-  let startCountdownApi: CountdownApi | null = null
-  let endCountdownApi: CountdownApi | null = null
+  let startCountdownApi: CountdownApi | null = null;
+  let endCountdownApi: CountdownApi | null = null;
 
   const setStartCountdownRef = (countdown: Countdown | null) => {
     if (countdown) {
-      startCountdownApi = countdown.getApi()
+      startCountdownApi = countdown.getApi();
     }
-  }
+  };
 
   const setEndCountdownRef = (countdown: Countdown | null) => {
     if (countdown) {
-      endCountdownApi = countdown.getApi()
+      endCountdownApi = countdown.getApi();
     }
-  }
+  };
 
-  const startCountdownRenderer = ({ api, days, hours, minutes, seconds, completed }: any) => {
-    if (api.isPaused()) api.start()
-    return (
-      completed ?
-        <Countdown
-          ref={setEndCountdownRef}
-          date={item.end_date * 1000}
-          zeroPadTime={3}
+  const startCountdownRenderer = ({
+    api,
+    days,
+    hours,
+    minutes,
+    seconds,
+    completed,
+  }: any) => {
+    if (api.isPaused()) api.start();
+    return completed ? (
+      <Countdown
+        ref={setEndCountdownRef}
+        date={item.end_date * 1000}
+        zeroPadTime={3}
+        renderer={endCountdownRenderer}
+      />
+    ) : (
+      <div>
+        <p>Starts In</p>
+        <p>
+          {days.toString().length === 1 ? `0${days}` : days}:
+          {hours.toString().length === 1 ? `0${hours}` : hours}:
+          {minutes.toString().length === 1 ? `0${minutes}` : minutes}:
+          {seconds.toString().length === 1 ? `0${seconds}` : seconds}
+        </p>
+      </div>
+    );
+  };
 
-          renderer={endCountdownRenderer}
-        />
-        :
-        <div>
-          <p>Starts In</p>
-          <p>
-            {days.toString().length === 1 ? `0${days}` : days}:
-            {hours.toString().length === 1 ? `0${hours}` : hours}:
-            {minutes.toString().length === 1 ? `0${minutes}` : minutes}:
-            {seconds.toString().length === 1 ? `0${seconds}` : seconds}
-          </p>
-        </div>
-    )
-  }
-
-  const endCountdownRenderer = ({ api, days, hours, minutes, seconds, completed }: any) => {
-    if (api.isPaused()) api.start()
-    return (
-      completed ?
-        <p>Ended</p>
-        :
-        <div>
-          <p>Live</p>
-          <p>
-            {days.toString().length === 1 ? `0${days}` : days}:
-            {hours.toString().length === 1 ? `0${hours}` : hours}:
-            {minutes.toString().length === 1 ? `0${minutes}` : minutes}:
-            {seconds.toString().length === 1 ? `0${seconds}` : seconds}
-          </p>
-        </div>
-
-    )
-  }
+  const endCountdownRenderer = ({
+    api,
+    days,
+    hours,
+    minutes,
+    seconds,
+    completed,
+  }: any) => {
+    if (api.isPaused()) api.start();
+    return completed ? (
+      <p>Ended</p>
+    ) : (
+      <div>
+        <p>Live</p>
+        <p>
+          {days.toString().length === 1 ? `0${days}` : days}:
+          {hours.toString().length === 1 ? `0${hours}` : hours}:
+          {minutes.toString().length === 1 ? `0${minutes}` : minutes}:
+          {seconds.toString().length === 1 ? `0${seconds}` : seconds}
+        </p>
+      </div>
+    );
+  };
 
   const handleBuyTicket = async (item: any, idx: any) => {
-
     try {
       if (idx === 0 || idx) {
         if (!buyTicketNFT.status) {
-          toast.error(`No exist Specific NFT in your Wallet`)
-          return
+          toast.error(`No exist Specific NFT in your Wallet`);
+          return;
         }
-        if (buyTicketNFT.status && buyTicketNFT.lists.length < (item.min_nft_count || 1)) {
-          toast.error(`You have to ${item.min_nft_count || 1} or more Specific NFTs in your Wallet`)
-          return
+        if (
+          buyTicketNFT.status &&
+          buyTicketNFT.lists.length < (item.min_nft_count || 1)
+        ) {
+          toast.error(
+            `You have to ${
+              item.min_nft_count || 1
+            } or more Specific NFTs in your Wallet`
+          );
+          return;
         }
-  
-        if (Date.now() / 1000 < item?.start_date || Date.now() / 1000 > item?.end_date) {
+
+        if (
+          Date.now() / 1000 < item?.start_date ||
+          Date.now() / 1000 > item?.end_date
+        ) {
           toast.error(`You can't buy NFT`);
           return;
         }
         if (Number(walletBalance) < amount * item.price) {
-
-          toast.error('insufficient funds');
-          return
+          toast.error("insufficient funds");
+          return;
         }
         if (amount * item.price <= 0) {
-          toast.error('Please enter value exactly');
-          return
+          toast.error("Please enter value exactly");
+          return;
         }
-        setLoading(true)
+        setLoading(true);
 
-        const res = await buyTicketsForRaffle(anchorWallet, item, amount, buyTicketNFT.lists)
+        const res = await buyTicketsForRaffle(
+          anchorWallet,
+          item,
+          amount,
+          buyTicketNFT.lists
+        );
         if (res) {
           toast("Success on buying tickets");
           const count_increase = isFilterByItem.map((obj: any, id: any) => {
-            if (id === idx) { obj.purchasedTicket = obj.purchasedTicket + amount; } return obj
-          })
-          setFilterByItem(count_increase)
+            if (id === idx) {
+              obj.purchasedTicket = obj.purchasedTicket + amount;
+            }
+            return obj;
+          });
+          setFilterByItem(count_increase);
         } else {
           toast("Fail on buying tickets");
         }
-
       }
     } catch (error) {
-      console.log('error', error)
+      console.log("error", error);
       toast("Fail on buying tickets");
-
     }
-  }
+  };
 
   return (
     <div className="basis-[32%] mt-6" key={item.id}>
@@ -128,19 +162,16 @@ const UserFilterRaffle = (props: any) => {
             alt="CoodeImage"
             className="h-[320px] w-full object-cover"
           />
-          <div className="absolute top-0 bg-yellow left-0 h-full w-full">
+          <div className="absolute top-0 left-0 w-full h-full bg-yellow">
             <div className="flex flex-col justify-between h-full p-2">
               <div className="flex justify-end">
                 <div className="border-black bg-[#949494] border flex rounded-md overflow-hidden">
-                  <p className="bg-white text-base py-1 pl-2 pr-4 para-clip">
+                  <p className="py-1 pl-2 pr-4 text-base bg-white para-clip">
                     Token ID
-                  </p>
-                  <p className="py-1 px-2 text-base text-white">
-                    #{item.tokenId}
                   </p>
                 </div>
               </div>
-              <div className="flex justify-between items-start">
+              <div className="flex items-start justify-between">
                 {/* <div className="border-black bg-[#949494] border flex rounded-md overflow-hidden">
                   <p className="bg-white text-base pt-[4px] pl-2 pr-3 para-clip-2">
                     <img
@@ -158,21 +189,18 @@ const UserFilterRaffle = (props: any) => {
                     Min NFT Count
                   </p>
                   <p className="py-[2px] pl-[2px] pr-[5px] text-[12px] text-white">
-                    { item.min_nft_count || 1 }
+                    {item.min_nft_count || 1}
                   </p>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <div className="bg-white -mt-1">
+        <div className="-mt-1 bg-white">
           <div className="pt-2 pl-3 pb-2 border-b-[#D9D9D9] border">
             <div className="flex items-center">
-              <img
-                src={VerificationIcon}
-                alt="VerificationIcon"
-              />
-              <span className="text-base leading-none inline-block ml-1">
+              <img src={VerificationIcon} alt="VerificationIcon" />
+              <span className="inline-block ml-1 text-base leading-none">
                 {item.tokenName}
               </span>
             </div>
@@ -187,7 +215,6 @@ const UserFilterRaffle = (props: any) => {
                     ref={setStartCountdownRef}
                     date={item.start_date * 1000}
                     zeroPadTime={3}
-
                     renderer={startCountdownRenderer}
                   />
                 </p>
@@ -202,12 +229,10 @@ const UserFilterRaffle = (props: any) => {
             <div className="flex justify-between pt-2 pb-9">
               <div>
                 <p className="text-sm">Ticket Price</p>
-                <p className="text-sm text-[#4A4A4A]">
-                  {item.price} $COODE
-                </p>
+                <p className="text-sm text-[#4A4A4A]">{item.price} $COODE</p>
               </div>
-              {
-                Date.now() / 1000 < item.end_date && <div className="flex basis-[50%] justify-between items-start">
+              {Date.now() / 1000 < item.end_date && (
+                <div className="flex basis-[50%] justify-between items-start">
                   <input
                     type="number"
                     placeholder="QTY"
@@ -216,20 +241,23 @@ const UserFilterRaffle = (props: any) => {
                     min="0"
                     onChange={(e) => {
                       if (id >= 0) {
-                        setAmount(prettyNumber(e.target.value))
+                        setAmount(prettyNumber(e.target.value));
                       }
                     }}
                   />
                   <button
                     type="button"
-                    className={`basis-[49%] text-sm bg-black rounded-md text-white py-1 border border-black  ${buyTicketNFT.status ? `opacity-100 cursor-pointer` : `opacity-80 cursor-pointer `} `}
+                    className={`basis-[49%] text-sm bg-black rounded-md text-white py-1 border border-black  ${
+                      buyTicketNFT.status
+                        ? `opacity-100 cursor-pointer`
+                        : `opacity-80 cursor-pointer `
+                    } `}
                     onClick={() => handleBuyTicket(item, id)}
                   >
                     BUY
                   </button>
                 </div>
-              }
-
+              )}
             </div>
           </div>
         </div>
